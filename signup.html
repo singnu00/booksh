@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>회원가입 | 우리 반 책장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF7EF;
+    --card:#FFFEFA;
+    --ink:#55493C;
+    --ink-soft:#A0937E;
+    --ink-faint:#CBBFA9;
+    --line:#EFE7D6;
+    --accent:#C9B79C;
+    --accent-dark:#A9926F;
+    --danger:#B0725E;
+    --success:#7A8B6F;
+    --serif:'Noto Serif KR', serif;
+    --sans:-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .box{
+    background:var(--card);border:1px solid var(--line);border-radius:4px;
+    padding:36px 32px;max-width:380px;width:100%;
+  }
+  .box h1{font-family:var(--serif);font-weight:500;font-size:1.5rem;margin:0 0 6px;text-align:center;}
+  .box p.sub{font-size:0.86rem;color:var(--ink-faint);margin:0 0 26px;text-align:center;}
+
+  .field{margin-bottom:14px;text-align:left;}
+  .field label{display:block;font-size:0.8rem;color:var(--ink-soft);margin-bottom:6px;}
+  .field input{
+    width:100%;border:1px solid var(--line);background:#fff;padding:11px 12px;
+    font-family:inherit;font-size:0.95rem;border-radius:2px;color:var(--ink);
+  }
+  .error{font-size:0.8rem;color:var(--danger);margin:-4px 0 12px;display:none;text-align:left;}
+  .success{font-size:0.8rem;color:var(--success);margin:-4px 0 12px;display:none;text-align:left;}
+  .btn-primary{
+    width:100%;padding:12px;border-radius:999px;border:none;
+    background:var(--line);color:var(--ink-faint);font-size:0.92rem;margin-top:2px;cursor:not-allowed;
+  }
+  .btn-primary.is-ready{background:var(--accent-dark);color:#fff;cursor:pointer;}
+  .btn-primary.is-ready:hover{background:var(--ink);}
+
+  .role-toggle{display:flex;gap:8px;margin-bottom:18px;}
+  .role-btn{
+    flex:1;padding:9px;border-radius:999px;border:1px solid var(--line);background:#fff;
+    font-size:0.85rem;color:var(--ink-soft);
+  }
+  .role-btn.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+
+  .signup-fields{display:none;}
+  .signup-fields.open{display:block;}
+
+  .back{display:block;text-align:center;margin-top:22px;font-size:0.82rem;color:var(--ink-faint);text-decoration:none;}
+  .back:hover{color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>회원가입</h1>
+  <p class="sub">학생이신가요, 선생님이신가요?</p>
+
+  <div class="role-toggle">
+    <button type="button" class="role-btn" id="roleStudentBtn">학생</button>
+    <button type="button" class="role-btn" id="roleTeacherBtn">선생님</button>
+  </div>
+
+  <form id="signupForm">
+    <div class="signup-fields" id="studentFields">
+      <div class="field"><label for="suId">학번</label><input type="text" id="suId" inputmode="numeric"></div>
+      <div class="field"><label for="suNameStudent">이름</label><input type="text" id="suNameStudent"></div>
+    </div>
+    <div class="signup-fields" id="teacherFields">
+      <div class="field"><label for="suNameTeacher">이름</label><input type="text" id="suNameTeacher"></div>
+    </div>
+    <p class="error" id="signupError"></p>
+    <p class="success" id="signupSuccess">가입 신청이 접수됐어요. 관리자가 승인하면 로그인할 수 있어요.</p>
+    <button type="submit" class="btn-primary" id="signupSubmitBtn" style="display:none;">가입 신청하기</button>
+  </form>
+
+  <a class="back" href="login.html">← 로그인으로 돌아가기</a>
+</div>
+
+<script src="common.js"></script>
+<script>
+  const studentFields = document.getElementById('studentFields');
+  const teacherFields = document.getElementById('teacherFields');
+  const roleStudentBtn = document.getElementById('roleStudentBtn');
+  const roleTeacherBtn = document.getElementById('roleTeacherBtn');
+  const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+  let signupRole = null;
+
+  roleStudentBtn.addEventListener('click', ()=>{
+    signupRole = 'student';
+    roleStudentBtn.classList.add('active');
+    roleTeacherBtn.classList.remove('active');
+    studentFields.classList.add('open');
+    teacherFields.classList.remove('open');
+    signupSubmitBtn.style.display = 'block';
+    updateSignupReady();
+  });
+  roleTeacherBtn.addEventListener('click', ()=>{
+    signupRole = 'teacher';
+    roleTeacherBtn.classList.add('active');
+    roleStudentBtn.classList.remove('active');
+    teacherFields.classList.add('open');
+    studentFields.classList.remove('open');
+    signupSubmitBtn.style.display = 'block';
+    updateSignupReady();
+  });
+
+  const updateSignupReady = wireReadyButton(
+    signupSubmitBtn,
+    ()=>{
+      if(signupRole === 'student'){
+        return !!document.getElementById('suId').value.trim() && !!document.getElementById('suNameStudent').value.trim();
+      }
+      if(signupRole === 'teacher'){
+        return !!document.getElementById('suNameTeacher').value.trim();
+      }
+      return false;
+    },
+    [document.getElementById('suId'), document.getElementById('suNameStudent'), document.getElementById('suNameTeacher')]
+  );
+
+  document.getElementById('signupForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const err = document.getElementById('signupError');
+    const ok = document.getElementById('signupSuccess');
+    err.style.display = 'none';
+    ok.style.display = 'none';
+
+    if(!signupRole){
+      err.textContent = '학생인지 선생님인지 먼저 선택해주세요.';
+      err.style.display = 'block';
+      return;
+    }
+
+    let id = '', name = '';
+    if(signupRole === 'student'){
+      id = document.getElementById('suId').value.trim();
+      name = document.getElementById('suNameStudent').value.trim();
+      if(!id || !name){
+        err.textContent = '학번과 이름을 모두 입력해주세요.';
+        err.style.display = 'block';
+        return;
+      }
+    }else{
+      name = document.getElementById('suNameTeacher').value.trim();
+      if(!name){
+        err.textContent = '이름을 입력해주세요.';
+        err.style.display = 'block';
+        return;
+      }
+    }
+
+    if(findExistingApplicant(signupRole, name, id)){
+      err.textContent = '이미 가입 신청했거나 등록된 회원이에요.';
+      err.style.display = 'block';
+      return;
+    }
+
+    const members = loadMembers();
+    members.push({
+      id: signupRole === 'student' ? id : '',
+      name,
+      role: signupRole,
+      approved: false,
+      password: DEFAULT_STUDENT_PW,
+      nickname: name,
+      photo: '',
+      createdAt: Date.now()
+    });
+    saveMembers(members);
+    document.getElementById('signupForm').reset();
+    signupSubmitBtn.style.display = 'none';
+    roleStudentBtn.classList.remove('active');
+    roleTeacherBtn.classList.remove('active');
+    studentFields.classList.remove('open');
+    teacherFields.classList.remove('open');
+    signupRole = null;
+    updateSignupReady();
+    ok.style.display = 'block';
+  });
+</script>
+</body>
+</html>
